@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %} Find unused "rules" {% endblock %}
+
+{% block header %}
+    <style type="text/css">
+    .unused li {
+        background: none repeat scroll 0 0 #D3D3D3;
+        border-left: 3px solid #A9A9A9;
+        padding-left: 20px;
+        }
+    .uaweb-overlay {
+        background: none repeat scroll 0 0 rgba(30, 31, 33, 0.8);
+        height: 100%;
+        left: 0;
+        position: fixed;
+        top: 0;
+        transition: all 0.3s ease 0s;
+        width: 100%;
+        z-index: 1000;
+    }
+    .uaweb-content {
+        background: none repeat scroll 0 0 #3A7EA2;
+        border-radius: 3px 3px 3px 3px;
+        color: #FFFFFF;
+        margin: 0 auto;
+        position: relative;
+        top:40px;
+    }
+    .uaweb-content h3 {
+        background: none repeat scroll 0 0 rgb(58, 126, 162, 0.1);
+        border-radius: 3px 3px 0 0;
+        font-size: 2.4em;
+        font-weight: 300;
+        margin: 0;
+        opacity: 0.8;
+        padding: 0.4em;
+        text-align: center;
+    }
+    </style>
+{% endblock %}
+ 
+{% block content %}
+    <h3>Search unused rules on website page</h3>
+    <form class="form-horizontal form" action="{% url pages %}" data-bind="submit:pages.sending">
+        {% csrf_token %}
+
+        <div class="row">
+            <div class="span8">
+                <div class="control-group">
+                    <label class="control-label" for="url">Url:</label>
+                    <div class="controls">
+                        <!-- /input-group -->
+                        <div class="input-append">
+                            <input class="span5" type="text" placeholder="http://example.com/" data-bind="value:pages.url"/>
+                            <button class="btn" type="button" data-bind="click:pages.push">Add</button>
+                        </div>
+                        <!-- /input-group -->
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="url">List Pages:</label>
+                    <div class="controls">
+                        <table class="table table-hover" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>URL</th>
+                                <th width="50px"></th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach:pages.links">
+                            <tr>
+                                <td data-bind="text:$data.link"></td>
+                                <td><a href="#" data-bind="click:$root.pages.remove">Remove</a></td>
+                            </tr>
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="controls">
+                        <button class="btn" type="submit">Run</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    {% include "unused/partial/result.html" %}
+
+{% endblock %}
+
+{% block footer %}
+    {% load staticfiles %}
+    
+    <script src="{% static 'assets/js/knockoutjs.js' %}"></script>
+    <script src="{% static 'assets/js/unused.js' %}"></script>
+{% endblock %}

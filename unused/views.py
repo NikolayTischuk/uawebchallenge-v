@@ -6,7 +6,7 @@ from django.http import Http404
 from django.template import TemplateDoesNotExist
 from django.views.generic.simple import direct_to_template
 
-from app.service.render import *
+from app.service.render import render_json, render_to
 from unused.service.grabbing import Pages, Website
 
 
@@ -20,19 +20,25 @@ def home(request):
 def task(request):
     return {}
 
-@render_json
-def get(request, type):
-    result = {'result':False}
+@render_to('unused/pages.html')
+def _pages(request):
+    result = {}
     if request.method == 'POST':
         unused = {}
-        if type == 'website':
-            link  = request.POST.get('url', None)
-            depth = request.POST.get('depth', 0)
-            unused = Website().grabbing(link, depth)
-        elif type == 'pages':
-            links = request.POST.getlist('links[]')
-            unused = Pages().grabbing(links)
-            
+        links  = request.POST.getlist('link')
+        unused = Pages().grabbing(links)
+        if len(unused) > 0:
+            result.update({'type':type, 'result':True, 'unused':unused})
+    
+    return result
+
+@render_to('unused/website.html')
+def _website(request):
+    result = {}
+    if request.method == 'POST':
+        unused = {}
+        links  = request.POST.getlist('link')
+        unused = Pages().grabbing(links)
         if len(unused) > 0:
             result.update({'type':type, 'result':True, 'unused':unused})
     
