@@ -41,7 +41,6 @@
 {% endblock %}
  
 {% block content %}
-    {% include 'unused/home.html' %}
     <form class="form-horizontal form" action="{% url website %}" data-bind="submit:website.sending">
         {% csrf_token %}
         <div class="row">

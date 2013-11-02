@@ -2,11 +2,11 @@
 # @author: ntischuk
 
 
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.template import TemplateDoesNotExist
 from django.views.generic.simple import direct_to_template
 
-from app.service.render import render_json, render_to
+from app.service.render import render_json, render_to, response_to_json
 from unused.service.grabbing import Pages, Website
 
 
@@ -28,8 +28,8 @@ def _pages(request):
         links  = request.POST.getlist('link')
         unused = Pages().grabbing(links)
         if len(unused) > 0:
-            result.update({'type':type, 'result':True, 'unused':unused})
-    
+            result.update({'result':True, 'unused':unused})
+            return response_to_json(list(result))
     return result
 
 @render_to('unused/website.html')
@@ -37,9 +37,10 @@ def _website(request):
     result = {}
     if request.method == 'POST':
         unused = {}
-        links  = request.POST.getlist('link')
-        unused = Pages().grabbing(links)
+        links  = request.POST.get('url')
+        unused = Website().grabbing(links, request.POST.get('depth'))
         if len(unused) > 0:
-            result.update({'type':type, 'result':True, 'unused':unused})
+            result.update({'result':True, 'unused':unused})
+            return response_to_json(result)
     
     return result

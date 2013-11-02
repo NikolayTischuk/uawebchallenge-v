@@ -1,5 +1,5 @@
 <hr />
-<div data-bind="if:result.unused.length > 0">
+<div>
     <div id="result" data-bind="foreach:result.unused">
         <h2 data-bind="text:$data.website"></h2>
         <div data-bind="foreach:{data:unused, as:'rules'}">
