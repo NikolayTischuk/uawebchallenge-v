@@ -12,6 +12,7 @@ if __name__ == '__main__':
     import time
     t = time.time()
     scheme = Scheme(uri = 'http://blog.ntischuk.com/')
-    scheme.building(0)
+    for index,item in enumerate(scheme.building(150)):
+        print index, item.get_uri()
     print "time: %f" % (time.time()-t)
     sys.exit(1)

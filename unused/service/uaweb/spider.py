@@ -9,7 +9,7 @@ from lxml import html
 
 
 ''' 
-    @version: 1.1
+    @version: 1.2.4
     @note Object Page 
 '''
 class Page:
@@ -27,13 +27,24 @@ class Page:
     
     def connect(self):
         try:
-            self.document = urllib2.urlopen(self.get_uri())
+            request = urllib2.Request(self.get_uri(), None, {'User-agent':'Robot-Grabber'})
+            self.document = urllib2.urlopen(request)
             self.html = self.document.read()
             self.visited = True
             return self.document
         except urllib2.HTTPError, e:
             self.error = str(e)
             return
+    
+    def has_header(self, key, value):
+        document = self.get_document()
+        if not hasattr(document, 'info'):
+            return False
+        
+        header = document.info()
+        if header.get(key, None) and header.dict[key].find(value) != -1:
+            return True
+        return False
     
     @staticmethod
     def is_uri(uri):
@@ -54,26 +65,34 @@ class Page:
     def get_document(self):
         return self.document
     
-    def search_page_links(self, absolut_links, _exclude = []):
-        def is_site_hyperlink(link):
+    def hyperlinks(self):
+        def is_hyperlink(link):
             # todo: http://example.com/index.php#about
-            return urlparse(link).netloc == urlparse(absolut_links).netloc
+            return urlparse(link).netloc == urlparse(self.get_uri()).netloc
         
         if self.hyperlink:
             return self.hyperlink
         else:
+            if not self.get_html():
+                return []
+            
             _search = html.fromstring(self.get_html())
-            if absolut_links:
-                _search.make_links_absolute(absolut_links)
-            self.hyperlink = []
-            reference = _search.xpath('descendant-or-self::a[@href]')
-            for link in reference:
-                href = link.get('href')
-                if is_site_hyperlink(href) and not href in _exclude:
-                    self.hyperlink.append(href)
-        return self.hyperlink
+            _search.make_links_absolute(self.get_uri())
+            
+            hyperlink = []
+            reference = _search.xpath('descendant-or-self::a[@href] | descendant-or-self::form[@action]')
+            for e in reference:
+                if e.tag == 'a':
+                    link = e.get('href', None)
+                elif e.tag == 'form':
+                    link = e.get('action', None)
+                
+                if link and is_hyperlink(link):
+                    hyperlink.append(link)
+            self.hyperlink = hyperlink
+            return self.hyperlink
     
-class Spider():
+class Crawler():
     __uri    = None
     __depth  = 0
     __stack  = {}
@@ -95,42 +114,30 @@ class Spider():
     
     def __mapping(self, reference, depth = 0):
         if depth > self.__depth:
-            return 
-        
-        page = None
+            return
         if reference in self.__viewer:
-            page = self.__stack.get(hash(reference), None)['page']
-        else:
-            page = Page(reference)
+            return
         
-        if not page:
-            return 
-        
-        if hasattr(page.get_document(), 'info'):
-            header = page.get_document().info()
-            if header.dict['content-type'].find('text/html') != -1:
-                print depth, reference
-                id = hash(reference)
-                self.__stack[id] = {'page':page, 'depth':depth}
-                self.__viewer.append(reference)
-
-                links = page.search_page_links(self.__uri)
-                grab = []
-                for ref in links:
-                    if ref not in self.__viewer: 
-                        grab.append(ref)
-                if grab:
-                    return map(self.__mapping, grab, [depth+1]* len(grab))
+        page = Page(reference)
+        if page.has_header('content-type', 'text/html'):
+            link = reference[0:75]
+            print('{0}{1}'.format(link.ljust(80, '.'), depth))
+            
+            self.__stack[hash(reference)] = {'page':page, 'depth':depth}
+            self.__viewer.append(reference)
+            links = page.hyperlinks()
+            return map(self.__mapping, links, [depth+1]*len(links))
         return
 
 if __name__ == '__main__':
-    w = Spider()
-    w.grabbing('http://blog.ntischuk.com/', 80)
+    import time
+    t = time.time()
+    
+    w = Crawler()
+    w.grabbing('http://uawebchallenge.com/', 50)
     print len(w.viewer())
-#     for index, link in enumerate(w.viewer()):
-#         print index, link
-            
-            
+    
+    print "time: %f" % (time.time()-t)
             
             
             

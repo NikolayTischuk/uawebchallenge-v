@@ -19,7 +19,7 @@ class Crawler:
         # is some clown is using absolute URLs for internal links?
         url = url.replace('http://' + self._host, '')
         # bail if we're running too deep
-        if self._depth >= 0 and currentDepth > self._depth:
+        if self._depth > 0 and currentDepth > self._depth:
 #             print 'WOWWW...'
             return
         # bail if it's a manky URL
@@ -42,8 +42,8 @@ class Crawler:
         self._handler(page)
         self._visited.append(url)
 
-        print self._depth, currentDepth 
-        print page.urls, [url] * len(page.urls), [currentDepth + 1] * len(page.urls)
+#         print self._depth, currentDepth 
+#         print page.urls, [url] * len(page.urls), [currentDepth + 1] * len(page.urls)
         map(self._run, page.urls, [url] * len(page.urls), [currentDepth+1] * len(page.urls))
 
 class Page:
@@ -84,8 +84,8 @@ def print_page(page):
 
 if __name__ == '__main__':
     startPage = '/'
-    depth = 1
+    depth = 20
 
     crawler = Crawler('blog.ntischuk.com', startPage, depth, print_page)
     crawler.run()
-    print crawler._visited
+    print len(crawler._visited)
