@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # @author: ntischuk
+# @version: 1.2.6
 
 import urllib2
 
@@ -9,7 +10,7 @@ from lxml import html
 
 
 ''' 
-    @version: 1.2.4
+    
     @note Object Page 
 '''
 class Page:
@@ -59,6 +60,9 @@ class Page:
     def get_uri(self):
         return self.uri
     
+    def status(self):
+        return self.get_document().getcode()
+    
     def get_html(self):
         return self.html
     
@@ -74,24 +78,30 @@ class Page:
             return self.hyperlink
         else:
             if not self.get_html():
-                return []
+                return list()
             
             _search = html.fromstring(self.get_html())
             _search.make_links_absolute(self.get_uri())
             
             hyperlink = []
-            reference = _search.xpath('descendant-or-self::a[@href] | descendant-or-self::form[@action]')
+            reference = _search.xpath('descendant-or-self::a[@href] | descendant-or-self::form[@action] | descendant-or-self::iframe[@src]')
             for e in reference:
                 if e.tag == 'a':
                     link = e.get('href', None)
                 elif e.tag == 'form':
                     link = e.get('action', None)
+                elif e.tag == 'iframe':
+                    link = e.get('src', None)
                 
                 if link and is_hyperlink(link):
                     hyperlink.append(link)
             self.hyperlink = hyperlink
             return self.hyperlink
+
+''' 
     
+    @note Object Crawler 
+'''
 class Crawler():
     __uri    = None
     __depth  = 0
@@ -103,6 +113,9 @@ class Crawler():
     
     def depth(self, depth):
         self.__depth = depth
+    
+    def stack(self):
+        return self.__stack
     
     def viewer(self):
         return self.__viewer
@@ -121,7 +134,7 @@ class Crawler():
         page = Page(reference)
         if page.has_header('content-type', 'text/html'):
             link = reference[0:75]
-            print('{0}{1}'.format(link.ljust(80, '.'), depth))
+            print('{0}{1}'.format(link.ljust(77, '.'), depth))
             
             self.__stack[hash(reference)] = {'page':page, 'depth':depth}
             self.__viewer.append(reference)
@@ -133,26 +146,10 @@ if __name__ == '__main__':
     import time
     t = time.time()
     
-    w = Crawler()
-    w.grabbing('http://uawebchallenge.com/', 50)
-    print len(w.viewer())
+    crawler = Crawler()
+    crawler.grabbing(uri = 'http://uawebchallenge.com/', depth = 50)
+    print len(crawler.viewer())
     
     print "time: %f" % (time.time()-t)
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
+    
+    

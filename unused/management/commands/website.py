@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 import time
 
 from unused.service.uaweb.parser import ParsingWebsite
-from unused.service.uaweb.mapper import Scheme, Page
+from unused.service.uaweb.spider import Crawler, Page
 from unused.service.uaweb.logg import Loggs
 
 class Command(BaseCommand):
@@ -15,24 +15,31 @@ class Command(BaseCommand):
     args = 'num url'
 
     def handle(self, *args, **options):
-        print 'website'
+        print '... {0}'.format('website '.ljust(73,'.'))
+        
+        reference = args[1]
+        reference = 'http://uawebchallenge.com/'
         t = time.time()
         if not str(args[0]).isdigit():
             print self.help
         else:
+            unused = []
             parser = ParsingWebsite()
-            scheme = Scheme(uri = args[1])
-            for page in scheme.building(args[0]):
-                Loggs().logger.info("Parsing: %s "%(page.get_uri()))
-                parser.set_uri(page.get_uri())
-                parser.parsing_css(content = page.get_html())
+            spider = Crawler()
+            spider.grabbing(uri = reference, depth = 50)
+            items = spider.stack()
+            for stack in items.keys():
+                page = items.get(stack)['page']
+                if page.status() == 200 and page.get_html():
+                    parser.set_uri(page.get_uri())
+                    parser.parsing_css(content = page.get_html())
+            
             website = []
             rules = parser.get_unused_rules()
-            print args[1]
             if rules:
                 for rule_uri in rules:
-                    print "\t%s"%(', '.join(rules[rule_uri].get_rules()))
-            else:
-                print None
+                    website.append({'uri':rule_uri, 'unused':rules[rule_uri].get_rules()})
+            unused.append({'uri':reference, 'unused':website})
             parser.clear()
+        print unused
         print "time: %f" % (time.time()-t)

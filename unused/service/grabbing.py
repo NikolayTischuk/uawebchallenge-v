@@ -2,7 +2,8 @@
 # @author: ntischuk
 
 from uaweb.parser import ParsingWebsite
-from uaweb.mapper import Scheme, Page
+# from uaweb.mapper import Scheme, Page
+from uaweb.spider import Crawler, Page
 from uaweb.logg import Loggs
 
 class Pages:
@@ -26,14 +27,20 @@ class Pages:
 
 class Website:
     def grabbing(self, link, depth):
+        print depth, link
         unused = []
         
         parser = ParsingWebsite()
-        scheme = Scheme(uri = link)
-        for page in scheme.building(depth):
-            print page.get_uri()
+        crawler = Crawler()
+        crawler.grabbing(uri = 'http://uawebchallenge.com/', depth = 50)
+        for page in crawler.viewer():
+            print page
+            import sys
+            sys.exit()
+
             parser.set_uri(page.get_uri())
             parser.parsing_css(content = page.get_html())
+        
         website = []
         rules = parser.get_unused_rules()
         if rules:
@@ -41,5 +48,5 @@ class Website:
                 website.append({'uri':rule_uri, 'unused':rules[rule_uri].get_rules()})
             unused.append({'uri':link, 'unused':website})
         parser.clear()
-            
+        
         return unused
