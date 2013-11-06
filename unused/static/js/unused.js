@@ -42,6 +42,7 @@ app.result = {
 app.pages = {
     'url'  : ko.observable(''),
     'links': ko.observableArray([]),
+    'list' : ko.observable(false),
     // add new link
     'push' : function(element) {
         var link = app.pages.url();
@@ -51,10 +52,15 @@ app.pages = {
 
         var page = new Page(link);
         app.pages.links.push(page);
+        app.pages.list(true);
 
         app.pages.url('');
     },
     'remove':function(page) {
+        if(!app.pages.links.length) {
+            app.pages.list(false);
+        }
+        
         app.pages.links.remove(page);
     },
     'sending': function(element) {

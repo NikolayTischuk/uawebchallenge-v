@@ -2,10 +2,36 @@
 
 {% block title %}Find unused "rules"{% endblock %}
 
-{% block content %}
-    <ul class="nav nav-pills">
-        <li><a href="{% url website %}">Website</a></li>
-        <li><a href="{% url pages %}">Pages</a></li>
-    </ul>
+{% block header %}
+    {% load staticfiles %}
+    <link href="{% static 'assets/css/unused.css' %}" rel="stylesheet">
 {% endblock %}
 
+{% block content %}
+    <h3>Search unused rules on website page</h3>
+    <ul class="nav nav-pills" id="tabs">
+        <li><a href="#pages">Pages</a></li>
+        <li><a href="#website">Website</a></li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane" id="pages">{% include "unused/pages.html" %}</div>
+        <div class="tab-pane" id="website">{% include "unused/website.html" %}</div>
+    </div>
+    
+    {% include "unused/partial/result.html" %}
+     
+{% endblock %}
+
+{% block footer %}
+    {% load staticfiles %}
+    <script src="{% static 'assets/js/knockoutjs.js' %}"></script>
+    <script src="{% static 'assets/js/unused.js' %}"></script>
+    <script type="text/javascript">
+    $(function () {
+        $('#tabs a').click(function (e) {
+            e.preventDefault();
+            $(this).tab('show');
+        });
+    });
+    </script>
+{% endblock %}

@@ -15,7 +15,7 @@ from cssselect.xpath import ExpressionError
 from cssselect import GenericTranslator, SelectorError
 from urlparse import urlparse
 from logg import Loggs
-from mapper import Page
+from spider import Page
 
 class Rules():
     uri   = None
